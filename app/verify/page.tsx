@@ -9,7 +9,6 @@ import { QRCodeSVG } from 'qrcode.react';
 function VerifyContent() {
     const searchParams = useSearchParams();
 
-    // 1. TANGKAP KEDUA KEMUNGKINAN PARAMETER
     const idParam = searchParams.get('id');
     const noSuratParam = searchParams.get('nomor_surat');
 
@@ -20,14 +19,11 @@ function VerifyContent() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // 2. LOGIKA PENCARIAN FLEKSIBEL
                 let query = supabase.from('skrd').select('*');
 
                 if (noSuratParam) {
-                    // Prioritaskan cari pakai Nomor Surat
                     query = query.eq('nomor_surat', noSuratParam);
                 } else if (idParam) {
-                    // Fallback cari pakai ID
                     query = query.eq('id', idParam);
                 } else {
                     setLoading(false);
@@ -48,7 +44,6 @@ function VerifyContent() {
         fetchData();
     }, [idParam, noSuratParam]);
 
-    // --- Helper Formatters ---
     const formatRupiah = (angka: number) => {
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
@@ -71,7 +66,6 @@ function VerifyContent() {
             hour: '2-digit', minute: '2-digit'
         });
     };
-    // ------------------
 
     if (loading) {
         return (

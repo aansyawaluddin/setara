@@ -7,9 +7,10 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Poppins, Kaushan_Script } from 'next/font/google';
 import { supabase } from '@/lib/supabase';
 
+// Font konfigurasi
 const poppins = Poppins({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700'],
   variable: '--font-poppins',
 });
 
@@ -23,14 +24,17 @@ export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
+  // KEMBALI KE EMAIL
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
 
   const [isButtonHovered, setIsButtonHovered] = useState(false);
 
+  // Fungsi Redirect Role
   const redirectBasedOnRole = async (userId: string) => {
     try {
       setLoading(true);
@@ -66,16 +70,13 @@ export default function LoginPage() {
       };
 
       const targetRoute = routes[data.role] || '/staff/dashboard';
-
       router.replace(targetRoute);
 
     } catch (err) {
       setErrorMsg("Gagal memproses role.");
       setLoading(false);
-    } finally {
     }
   };
-
 
   useEffect(() => {
     const checkUserSession = async () => {
@@ -101,7 +102,7 @@ export default function LoginPage() {
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
+        email: email, // Menggunakan variabel email
         password: password,
       });
 
@@ -124,7 +125,7 @@ export default function LoginPage() {
   if (checkingSession) {
     return (
       <div style={{ display: 'flex', height: '100vh', width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff' }}>
-        <Loader2 size={40} className="animate-spin text-[#007bff]" />
+        <Loader2 size={40} className="animate-spin text-[#172433]" />
       </div>
     );
   }
@@ -143,79 +144,93 @@ export default function LoginPage() {
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
           }}>
-            <Loader2 size={48} className="animate-spin text-[#007bff]" style={{ marginBottom: '16px' }} />
+            <Loader2 size={48} className="animate-spin text-[#172433]" style={{ marginBottom: '16px' }} />
             <p style={{ fontSize: '18px', fontWeight: '600', color: '#374151', marginBottom: '4px' }}>Sedang Memproses...</p>
-            <p style={{ fontSize: '14px', color: '#9ca3af' }}>Mohon tunggu sebentar</p>
           </div>
         </div>
       )}
 
-      {/* Bagian Kiri (Desktop Only) */}
+
       <div className="hidden lg:flex" style={{
         width: '50%',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #172433 30%, #3D4650 61%, #3D4650 74%, #172433 85%)',
+        background: 'linear-gradient(135deg, #0075F6 30%, #204b79 61%, #204b79 74%, #0075F6 85%)',
         padding: '48px',
         color: '#ffffff',
         position: 'relative'
       }}>
-        <div style={{ position: 'relative', marginBottom: '24px', width: '100%', maxWidth: '450px', zIndex: 10 }}>
+
+        <div style={{ position: 'absolute', top: '30px', left: '40px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+
           <Image
-            src="/icon/ilustrasi.svg"
-            alt="Ilustrasi Login"
-            width={500}
-            height={500}
+            src="/icon/icon.jpeg"
+            alt="Logo Perkimtan"
+            width={45}
+            height={45}
+            style={{ objectFit: 'contain' }}
+          />
+
+          <div style={{ display: 'flex', flexDirection: 'column', fontSize: '12px', fontWeight: '300', opacity: 0.9 }}>
+            <span>Dinas Perumahan, Kawasan Permukiman</span>
+            <span>dan Pertanahan</span>
+          </div>
+        </div>
+
+        <div style={{
+          position: 'relative',
+          marginBottom: '40px',
+          marginTop: '120px',
+          width: '100%',
+          maxWidth: '250px',
+          zIndex: 10
+        }}>
+          <Image
+            src="/gowa.png"
+            alt="Lambang Gowa"
+            width={250}
+            height={250}
             priority
-            style={{ width: '100%', height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 10px 8px rgb(0 0 0 / 0.2))' }}
+            style={{ width: '100%', height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.3))' }}
           />
         </div>
 
+
         <div style={{ textAlign: 'center', zIndex: 10, width: '100%' }}>
-          <h1 className={kaushan.className} style={{ fontSize: '60px', marginBottom: '8px' }}>Simreda</h1>
+          <h1 className={kaushan.className} style={{ fontSize: '72px', marginBottom: '16px', lineHeight: '1' }}>
+            Setara
+          </h1>
           <p style={{
-            fontSize: '16px',
+            fontSize: '18px',
             fontWeight: '300',
             opacity: 0.9,
-            letterSpacing: '0.05em',
+            letterSpacing: '0.02em',
             margin: '0 auto',
-            whiteSpace: 'nowrap'
           }}>
-            Sistem Informasi Manajemen Retribusi Daerah
+            Surat Ketetapan Retribusi Daerah
           </p>
         </div>
       </div>
 
-      {/* Bagian Kanan (Form) */}
       <div style={{
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        padding: '0 40px',
+        padding: '0 60px',
         height: '100%',
         backgroundColor: '#ffffff'
       }}>
-        <div style={{ width: '100%', maxWidth: '450px', margin: '0 auto' }}>
+        <div style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
 
-          {/* Header Mobile */}
           <div className="lg:hidden" style={{ marginBottom: '32px', textAlign: 'center' }}>
-            <h1 className={kaushan.className} style={{ fontSize: '48px', color: '#007bff' }}>Simreda</h1>
-            <p style={{
-              fontSize: '11px',
-              color: '#9ca3af',
-              marginTop: '4px',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }}>
-              Sistem Informasi Manajemen Retribusi Daerah
-            </p>
+            <h1 className={kaushan.className} style={{ fontSize: '48px', color: '#172433' }}>Selara</h1>
+            <p style={{ fontSize: '12px', color: '#6b7280' }}>Surat Ketetapan Retribusi Daerah</p>
           </div>
 
-          <div style={{ marginBottom: '32px', textAlign: 'center' }}>
-            <h2 className={kaushan.className} style={{ fontSize: '40px', color: '#111827', marginBottom: '8px' }}>
+          <div style={{ marginBottom: '40px', textAlign: 'center' }}>
+            <h2 className={kaushan.className} style={{ fontSize: '48px', color: '#111827', marginBottom: '12px' }}>
               Welcome Back!
             </h2>
             <p style={{ color: '#6b7280', fontSize: '14px', lineHeight: '1.6' }}>
@@ -223,10 +238,9 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Pesan Error */}
           {errorMsg && (
             <div style={{
-              marginBottom: '16px', padding: '12px', borderRadius: '8px',
+              marginBottom: '20px', padding: '12px', borderRadius: '8px',
               backgroundColor: '#fef2f2', border: '1px solid #fecaca',
               color: '#dc2626', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px'
             }}>
@@ -234,10 +248,12 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* Input Email */}
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label htmlFor="email" style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>Email</label>
+              <label htmlFor="email" style={{ fontSize: '15px', fontWeight: '600', color: '#111827' }}>
+                Email
+              </label>
               <input
                 id="email"
                 type="email"
@@ -246,16 +262,19 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 style={{
-                  width: '100%', padding: '12px 16px', borderRadius: '8px',
-                  backgroundColor: '#f3f4f6', border: '1px solid transparent', outline: 'none',
-                  fontSize: '14px', color: '#374151'
+                  width: '100%', padding: '14px 16px', borderRadius: '8px',
+                  backgroundColor: '#f1f5f9',
+                  border: 'none',
+                  outline: 'none',
+                  fontSize: '14px', color: '#334155'
                 }}
               />
             </div>
 
-            {/* Input Password */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label htmlFor="password" style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>Password</label>
+              <label htmlFor="password" style={{ fontSize: '15px', fontWeight: '600', color: '#111827' }}>
+                Password
+              </label>
               <div style={{ position: 'relative' }}>
                 <input
                   id="password"
@@ -265,20 +284,22 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   style={{
-                    width: '100%', padding: '12px 48px 12px 16px', borderRadius: '8px',
-                    backgroundColor: '#f3f4f6', border: '1px solid transparent', outline: 'none',
-                    fontSize: '14px', color: '#374151'
+                    width: '100%', padding: '14px 48px 14px 16px', borderRadius: '8px',
+                    backgroundColor: '#f1f5f9',
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: '14px', color: '#334155'
                   }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   style={{
-                    position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af'
+                    position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', color: '#64748b'
                   }}
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
@@ -291,16 +312,16 @@ export default function LoginPage() {
                 onMouseLeave={() => setIsButtonHovered(false)}
                 style={{
                   width: '100%',
-                  padding: '14px',
+                  padding: '16px',
                   borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
+                  fontSize: '16px',
+                  fontWeight: '600',
                   cursor: loading ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s',
-                  backgroundColor: loading ? '#9ca3af' : (isButtonHovered ? 'rgba(23, 36, 51, 0.9)' : '#172433'),
+                  backgroundColor: '#172433',
                   color: '#ffffff',
                   border: 'none',
-                  opacity: loading ? 0.7 : 1
+                  opacity: loading ? 0.7 : (isButtonHovered ? 0.9 : 1)
                 }}
               >
                 {loading ? 'Memuat...' : 'Masuk'}

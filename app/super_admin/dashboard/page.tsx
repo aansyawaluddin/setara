@@ -150,17 +150,17 @@ export default function DashboardPage() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 background: 'linear-gradient(90deg, #172433 48%, #3D4650 62%, #3D4650 72%, #172433 89%)',
-                padding: '0 24px',
+                padding: '0 60px',
             }}>
                 {/* Logo Kiri */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div style={{ fontSize: '30px', fontWeight: '800', letterSpacing: '0.025em', color: '#ffffff' }}>
-                        <span>SIM</span>
-                        <span style={{ color: '#FFCC00' }}>REDA</span>
+                        <span>Se</span>
+                        <span style={{ color: '#FFCC00' }}>tara</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: '1.2' }}>
                         <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>
-                            Sistem Informasi Manajemen
+                            Sistem Ketetapan
                         </span>
                         <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>
                             Retribusi Daerah
@@ -280,12 +280,13 @@ export default function DashboardPage() {
                             minWidth: '250px',
                             borderRadius: '12px',
                             padding: '24px',
-                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                            boxShadow:
+                                '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             border: '1px solid #e5e7eb',
-                            backgroundColor: 'red',
+                            backgroundColor: '#F9F9F9',
                         }}
                     >
                         <div>
@@ -294,7 +295,7 @@ export default function DashboardPage() {
                                     fontSize: '14px',
                                     fontWeight: '600',
                                     marginBottom: '8px',
-                                    color: '#ffffff',
+                                    color: '#111827',
                                 }}
                             >
                                 User Tidak Aktif
@@ -304,7 +305,7 @@ export default function DashboardPage() {
                                     fontSize: '36px',
                                     fontWeight: '800',
                                     margin: 0,
-                                    color: '#ffffff',
+                                    color: '#111827',
                                 }}
                             >
                                 {loading ? '...' : countInactive}

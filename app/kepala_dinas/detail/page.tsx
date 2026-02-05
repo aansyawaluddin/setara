@@ -186,14 +186,14 @@ const DetailSKRDPage = () => {
 
                 <nav style={{
                     display: 'flex', height: '80px', alignItems: 'center', justifyContent: 'space-between',
-                    background: 'linear-gradient(90deg, #172433 48%, #3D4650 62%, #3D4650 72%, #172433 89%)', padding: '0 40px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    background: 'linear-gradient(90deg, #172433 48%, #3D4650 62%, #3D4650 72%, #172433 89%)', padding: '0 60px  ', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div style={{ fontSize: '30px', fontWeight: '800', letterSpacing: '0.025em', color: '#ffffff' }}>
-                            <span>SIM</span><span style={{ color: '#FFCC00' }}>REDA</span>
+                            <span>Se</span><span style={{ color: '#FFCC00' }}>tara</span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.2' }}>
-                            <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Sistem Informasi Manajemen</span>
+                            <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Sistem Ketetapan</span>
                             <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Retribusi Daerah</span>
                         </div>
                     </div>
@@ -203,7 +203,7 @@ const DetailSKRDPage = () => {
                     width: '100%',
                     paddingTop: '40px',
                     paddingBottom: '80px',
-                    paddingLeft: '120px',
+                    paddingLeft: '60px',
                     paddingRight: '120px',
                     boxSizing: 'border-box'
                 }}>

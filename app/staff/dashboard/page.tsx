@@ -19,7 +19,6 @@ import {
     Upload,
     File,
     X
-    // Icon Eye dihapus karena tidak digunakan lagi di sini
 } from 'lucide-react';
 import Link from "next/link";
 import { Poppins } from 'next/font/google';
@@ -54,7 +53,6 @@ export default function DashboardPage() {
     const [selectedNomorPay, setSelectedNomorPay] = useState('');
     const [paymentFile, setPaymentFile] = useState<File | null>(null);
 
-    // State loading khusus pembayaran
     const [isPaying, setIsPaying] = useState(false);
 
     const fetchData = async () => {
@@ -202,13 +200,13 @@ export default function DashboardPage() {
         <div className={poppins.className} style={{ minHeight: '100vh', backgroundColor: '#ffffff', color: '#1f2937', fontFamily: 'var(--font-poppins)' }}>
 
             {/* Navbar */}
-            <nav style={{ display: 'flex', height: '80px', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#172433', padding: '0 24px' }}>
+            <nav style={{ display: 'flex', height: '80px', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#172433', padding: '0 60px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div style={{ fontSize: '30px', fontWeight: '800', letterSpacing: '0.025em', color: '#ffffff' }}>
-                        <span>SIM</span><span style={{ color: '#FFCC00' }}>REDA</span>
+                        <span>Se</span><span style={{ color: '#FFCC00' }}>tara</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: '1.2' }}>
-                        <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Sistem Informasi Manajemen</span>
+                        <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Sistem Ketetapan</span>
                         <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Retribusi Daerah</span>
                     </div>
                 </div>
@@ -225,7 +223,7 @@ export default function DashboardPage() {
                 </div>
             </nav>
 
-            <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 16px' }}>
+            <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 60px' }}>
                 <div style={{ marginBottom: '24px' }}>
                     <h1 style={{ fontSize: '36px', fontWeight: '800', marginBottom: '8px', color: '#000000' }}>Daftar SKRD</h1>
                 </div>

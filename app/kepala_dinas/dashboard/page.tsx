@@ -12,13 +12,13 @@ import {
     Clock,
     CheckCircle
 } from 'lucide-react';
-import Link from "next/link";
+import Link from "next/link"; // Import Link untuk navigasi
 import { Poppins } from 'next/font/google';
 import { supabase } from '@/lib/supabase';
 
 const poppins = Poppins({
     subsets: ['latin'],
-    weight: ['400', '500', '600', '700'],
+    weight: ['400', '500', '600', '700', '800'], // Menambahkan weight 800
     variable: '--font-poppins',
 });
 
@@ -106,28 +106,60 @@ export default function DashboardPage() {
     return (
         <div className={poppins.className} style={{ minHeight: '100vh', backgroundColor: '#ffffff', color: '#1f2937', fontFamily: 'var(--font-poppins)' }}>
 
-            {/* Navbar */}
+            {/* --- NAVBAR --- */}
             <nav style={{
                 display: 'flex',
                 height: '80px',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 background: 'linear-gradient(90deg, #172433 48%, #3D4650 62%, #3D4650 72%, #172433 89%)',
-                padding: '0 24px',
+                padding: '0 60px',
             }}>
+                {/* 1. Bagian Logo (Kiri) */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div style={{ fontSize: '30px', fontWeight: '800', letterSpacing: '0.025em', color: '#ffffff' }}>
-                        <span>SIM</span>
-                        <span style={{ color: '#FFCC00' }}>REDA</span>
+                        <span>Se</span>
+                        <span style={{ color: '#FFCC00' }}>tara</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: '1.2' }}>
                         <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>
-                            Sistem Informasi Manajemen
+                            Sistem Ketetapan
                         </span>
                         <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>
                             Retribusi Daerah
                         </span>
                     </div>
+                </div>
+
+                {/* 2. Bagian Menu Navigasi (Tengah) - BARU DITAMBAHKAN */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
+                    <Link
+                        href="/dashboard"
+                        style={{
+                            color: '#FFCC00', // Warna Kuning karena sedang aktif di halaman ini
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            textDecoration: 'none',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Beranda
+                    </Link>
+                    <Link
+                        href="/kepala_dinas/rekapitulasi" 
+                        style={{
+                            color: '#e5e7eb',
+                            fontSize: '16px',
+                            fontWeight: '500',
+                            textDecoration: 'none',
+                            cursor: 'pointer',
+                            transition: 'color 0.2s'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.color = '#ffffff'}
+                        onMouseOut={(e) => e.currentTarget.style.color = '#e5e7eb'}
+                    >
+                        Rekapitulasi Pembayaran
+                    </Link>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -166,14 +198,13 @@ export default function DashboardPage() {
             <main style={{
                 maxWidth: '1280px',
                 margin: '0 auto',
-                padding: '40px 16px'
+                padding: '40px 60px'
             }}>
 
                 <div style={{ marginBottom: '24px' }}>
                     <h1 style={{ fontSize: '36px', fontWeight: '800', marginBottom: '8px', color: '#000000' }}>Daftar SKRD</h1>
                 </div>
 
-                {/* --- CARD SEBAGAI TAB SWITCHER --- */}
                 <div style={{
                     display: 'flex',
                     gap: '24px',
@@ -181,8 +212,6 @@ export default function DashboardPage() {
                     width: '100%',
                     maxWidth: '650px'
                 }}>
-
-                    {/* Kartu 1: Menunggu Validasi */}
                     <div
                         onClick={() => setActiveTab('pending')}
                         style={{
@@ -197,8 +226,6 @@ export default function DashboardPage() {
                             alignItems: 'center',
                             transition: 'all 0.3s ease',
                             border: '1px solid #e5e7eb',
-
-                            // LOGIKA WARNA
                             backgroundColor: activeTab === 'pending' ? '#172433' : '#F9F9F9',
                         }}
                     >
@@ -231,7 +258,6 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    {/* Kartu 2: Diterbitkan */}
                     <div
                         onClick={() => setActiveTab('published')}
                         style={{

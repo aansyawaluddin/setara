@@ -120,7 +120,7 @@ const RevisiSKRD = () => {
     };
 
     const handleExecuteUpdate = async () => {
-        setLoading(true); 
+        setLoading(true);
 
         try {
             const cleanJumlah = parseInt(jumlah.replace(/\./g, ''));
@@ -135,8 +135,8 @@ const RevisiSKRD = () => {
                     jumlah: cleanJumlah,
                     terbilang: terbilang,
                     kepala_dinas: kepalaDinas,
-                    catatan_revisi: null, 
-                    status: false,    
+                    catatan_revisi: null,
+                    status: false,
                 })
                 .eq('id', idSurat);
 
@@ -173,15 +173,21 @@ const RevisiSKRD = () => {
 
             {/* Navbar */}
             <nav style={{
-                display: 'flex', height: '80px', alignItems: 'center', justifyContent: 'space-between',
-                backgroundColor: '#172433', padding: '0 40px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                display: 'flex',
+                height: '80px',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                backgroundColor: '#172433',
+                padding: '0 60px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div style={{ fontSize: '30px', fontWeight: '800', letterSpacing: '0.025em', color: '#ffffff' }}>
-                        <span>SIM</span><span style={{ color: '#FFCC00' }}>REDA</span>
+                        <span>Se</span>
+                        <span style={{ color: '#FFCC00' }}>tara</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: '1.2' }}>
-                        <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Sistem Informasi Manajemen</span>
+                        <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Sistem Ketetapan</span>
                         <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Retribusi Daerah</span>
                     </div>
                 </div>
@@ -190,7 +196,7 @@ const RevisiSKRD = () => {
             {/* Main Content */}
             <main style={{
                 width: '100%', paddingTop: '40px', paddingBottom: '40px',
-                paddingLeft: '120px', paddingRight: '120px', boxSizing: 'border-box'
+                paddingLeft: '60px', paddingRight: '120px', boxSizing: 'border-box'
             }}>
                 <button
                     type="button"
@@ -391,7 +397,7 @@ const RevisiSKRD = () => {
                     <div style={{ paddingTop: '16px' }}>
                         <button
                             type="submit"
-                            disabled={loading} 
+                            disabled={loading}
                             style={{
                                 width: '100%',
                                 backgroundColor: '#172433',

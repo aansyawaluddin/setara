@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { 
-    ArrowLeft, 
-    Loader2, 
-    Printer, 
-    CheckCircle, 
-    Clock, 
-    Eye 
+import {
+    ArrowLeft,
+    Loader2,
+    Printer,
+    CheckCircle,
+    Clock,
+    Eye
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useSearchParams } from 'next/navigation';
@@ -68,7 +68,7 @@ const DetailSKRDPage = () => {
         return new Date(dateString).toLocaleString('id-ID', {
             day: 'numeric', month: 'long', year: 'numeric',
             hour: '2-digit', minute: '2-digit', hour12: false
-        }) + ' WITA'; 
+        }) + ' WITA';
     };
 
     const handlePrint = () => {
@@ -102,15 +102,21 @@ const DetailSKRDPage = () => {
             <div className="screen-only">
                 {/* Navbar */}
                 <nav style={{
-                    display: 'flex', height: '80px', alignItems: 'center', justifyContent: 'space-between',
-                    background: 'linear-gradient(90deg, #172433 48%, #3D4650 62%, #3D4650 72%, #172433 89%)', padding: '0 40px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    display: 'flex',
+                    height: '80px',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    backgroundColor: '#172433',
+                    padding: '0 60px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div style={{ fontSize: '30px', fontWeight: '800', letterSpacing: '0.025em', color: '#ffffff' }}>
-                            <span>SIM</span><span style={{ color: '#FFCC00' }}>REDA</span>
+                            <span>Se</span>
+                            <span style={{ color: '#FFCC00' }}>tara</span>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.2' }}>
-                            <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Sistem Informasi Manajemen</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: '1.2' }}>
+                            <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Sistem Ketetapan</span>
                             <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Retribusi Daerah</span>
                         </div>
                     </div>
@@ -120,7 +126,7 @@ const DetailSKRDPage = () => {
                     width: '100%',
                     paddingTop: '40px',
                     paddingBottom: '80px',
-                    paddingLeft: '120px',
+                    paddingLeft: '60px',
                     paddingRight: '120px',
                     boxSizing: 'border-box'
                 }}>
@@ -168,14 +174,14 @@ const DetailSKRDPage = () => {
                         </div>
                     </div>
 
-                    <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: '1fr 1fr', 
-                        columnGap: '64px', 
-                        rowGap: '40px', 
-                        alignItems: 'start' 
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        columnGap: '64px',
+                        rowGap: '40px',
+                        alignItems: 'start'
                     }}>
-                        
+
                         <div>
                             <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Status Permohonan</p>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: data.status ? '#10b981' : '#f59e0b', fontWeight: '600', fontSize: '16px' }}>
@@ -210,7 +216,7 @@ const DetailSKRDPage = () => {
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '12px' }}>
                                     {data.tanggal_pelunasan && (
                                         <div style={{ fontSize: '14px', color: '#4b5563' }}>
-                                            Dibayar pada: <br/>
+                                            Dibayar pada: <br />
                                             <span style={{ fontWeight: '600', color: '#111827' }}>
                                                 {formatDateTime(data.tanggal_pelunasan)}
                                             </span>
@@ -218,14 +224,14 @@ const DetailSKRDPage = () => {
                                     )}
 
                                     {data.bukti_pembayaran_url && (
-                                        <a 
-                                            href={data.bukti_pembayaran_url} 
-                                            target="_blank" 
+                                        <a
+                                            href={data.bukti_pembayaran_url}
+                                            target="_blank"
                                             rel="noreferrer"
-                                            style={{ 
-                                                display: 'inline-flex', alignItems: 'center', gap: '6px', 
+                                            style={{
+                                                display: 'inline-flex', alignItems: 'center', gap: '6px',
                                                 backgroundColor: '#3b82f6', color: 'white', padding: '8px 16px',
-                                                borderRadius: '6px', fontSize: '13px', fontWeight: '600', 
+                                                borderRadius: '6px', fontSize: '13px', fontWeight: '600',
                                                 textDecoration: 'none', boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
                                             }}
                                         >
