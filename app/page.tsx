@@ -225,7 +225,7 @@ export default function LoginPage() {
         <div style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
 
           <div className="lg:hidden" style={{ marginBottom: '32px', textAlign: 'center' }}>
-            <h1 className={kaushan.className} style={{ fontSize: '48px', color: '#172433' }}>Selara</h1>
+            <h1 className={kaushan.className} style={{ fontSize: '48px', color: '#172433' }}>Setara</h1>
             <p style={{ fontSize: '12px', color: '#6b7280' }}>Surat Ketetapan Retribusi Daerah</p>
           </div>
 
