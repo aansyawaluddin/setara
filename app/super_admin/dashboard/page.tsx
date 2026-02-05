@@ -32,6 +32,11 @@ export default function DashboardPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [userName, setUserName] = useState('');
 
+    // --- State untuk Sort & Pagination ---
+    const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
     const [modalConfig, setModalConfig] = useState<{
         isOpen: boolean;
         id: string | null;
@@ -40,13 +45,13 @@ export default function DashboardPage() {
 
     const [actionLoading, setActionLoading] = useState(false);
 
-
     const fetchData = async () => {
         setLoading(true);
         try {
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
+                .neq('role', 'super_admin')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -58,10 +63,10 @@ export default function DashboardPage() {
             setLoading(false);
         }
     };
+
     const fetchUserName = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
-
             if (user) {
                 if (user.user_metadata?.nama_lengkap) {
                     setUserName(user.user_metadata.nama_lengkap);
@@ -71,7 +76,6 @@ export default function DashboardPage() {
                         .select('nama_lengkap')
                         .eq('id', user.id)
                         .single();
-
                     if (profile) setUserName(profile.nama_lengkap);
                 }
             }
@@ -88,7 +92,6 @@ export default function DashboardPage() {
     const openConfirmModal = (id: string, currentStatus: boolean) => {
         setModalConfig({ isOpen: true, id, currentStatus });
     };
-
 
     const handleConfirmAction = async () => {
         const { id, currentStatus } = modalConfig;
@@ -116,6 +119,8 @@ export default function DashboardPage() {
         }
     };
 
+    // --- LOGIKA FILTER, SORT, & PAGINATION ---
+
     const filteredData = dataUsers.filter(item => {
         const q = searchQuery.toLowerCase();
         const email = (item.email || '').toString().toLowerCase();
@@ -124,19 +129,41 @@ export default function DashboardPage() {
         return email.includes(q) || nama.includes(q) || nip.includes(q);
     });
 
+    const sortedData = [...filteredData].sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+
+    const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const currentData = sortedData.slice(startIndex, startIndex + itemsPerPage);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
+
+    const handleSortToggle = () => {
+        setSortOrder(prev => (prev === 'newest' ? 'oldest' : 'newest'));
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) setCurrentPage(prev => prev - 1);
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
+    };
+
     const countActive = dataUsers.filter(u => u.is_active === true).length;
     const countInactive = dataUsers.filter(u => u.is_active === false).length;
 
     const formatRole = (role: any) => {
         switch (role) {
-            case 'super_admin':
-                return 'Super Admin';
-            case 'kepala_dinas':
-                return 'Kepala Dinas';
-            case 'staff':
-                return 'Staff';
-            default:
-                return role || '-';
+            case 'super_admin': return 'Super Admin';
+            case 'kepala_dinas': return 'Kepala Dinas';
+            case 'staff': return 'Staff';
+            default: return role || '-';
         }
     };
 
@@ -145,37 +172,22 @@ export default function DashboardPage() {
 
             {/* Navbar */}
             <nav style={{
-                display: 'flex',
-                height: '80px',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                display: 'flex', height: '80px', alignItems: 'center', justifyContent: 'space-between',
                 background: 'linear-gradient(90deg, #172433 48%, #3D4650 62%, #3D4650 72%, #172433 89%)',
                 padding: '0 60px',
             }}>
-                {/* Logo Kiri */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div style={{ fontSize: '30px', fontWeight: '800', letterSpacing: '0.025em', color: '#ffffff' }}>
-                        <span>Se</span>
-                        <span style={{ color: '#FFCC00' }}>tara</span>
+                        <span>Se</span><span style={{ color: '#FFCC00' }}>tara</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: '1.2' }}>
-                        <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>
-                            Sistem Ketetapan
-                        </span>
-                        <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>
-                            Retribusi Daerah
-                        </span>
+                        <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Sistem Ketetapan</span>
+                        <span style={{ fontSize: '11px', fontWeight: '500', color: '#ffffff' }}>Retribusi Daerah</span>
                     </div>
                 </div>
-
-                {/* User Kanan */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#ffffff' }}>
-                        <div style={{
-                            display: 'flex', height: '32px', width: '32px',
-                            alignItems: 'center', justifyContent: 'center',
-                            borderRadius: '9999px', border: '1px solid rgba(255, 255, 255, 0.3)'
-                        }}>
+                        <div style={{ display: 'flex', height: '32px', width: '32px', alignItems: 'center', justifyContent: 'center', borderRadius: '9999px', border: '1px solid rgba(255, 255, 255, 0.3)' }}>
                             <User size={18} />
                         </div>
                         <span style={{ fontSize: '14px', fontWeight: '500' }}>{userName}</span>
@@ -186,14 +198,8 @@ export default function DashboardPage() {
                             window.location.href = '/';
                         }}
                         style={{
-                            borderRadius: '4px',
-                            backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                            padding: '4px 12px',
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                            color: '#ffffff',
-                            border: 'none',
-                            cursor: 'pointer',
+                            borderRadius: '4px', backgroundColor: 'rgba(239, 68, 68, 0.8)', padding: '4px 12px',
+                            fontSize: '12px', fontWeight: 'bold', color: '#ffffff', border: 'none', cursor: 'pointer',
                             transition: 'background-color 0.2s'
                         }}
                     >
@@ -202,147 +208,48 @@ export default function DashboardPage() {
                 </div>
             </nav>
 
-            <main style={{
-                maxWidth: '1280px',
-                margin: '0 auto',
-                padding: '40px 60px'
-            }}>
+            <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 60px' }}>
 
                 <div style={{ marginBottom: '40px' }}>
                     <h1 style={{ fontSize: '36px', fontWeight: '800', marginBottom: '8px', color: '#000000' }}>Daftar Pengguna</h1>
                 </div>
 
-                <div
-                    style={{
-                        display: 'flex',
-                        gap: '24px',
-                        marginBottom: '40px',
-                        width: '100%',
-                        maxWidth: '650px',
-                    }}
-                >
-                    <div
-                        style={{
-                            flex: 1,
-                            minWidth: '250px',
-                            borderRadius: '12px',
-                            padding: '24px',
-                            boxShadow:
-                                '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            border: '1px solid #e5e7eb',
-                            backgroundColor: '#F9F9F9',
-                        }}
-                    >
+                {/* Cards Statistik */}
+                <div style={{ display: 'flex', gap: '24px', marginBottom: '40px', width: '100%', maxWidth: '650px' }}>
+                    <div style={{
+                        flex: 1, minWidth: '250px', borderRadius: '12px', padding: '24px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        border: '1px solid #e5e7eb', backgroundColor: '#F9F9F9',
+                    }}>
                         <div>
-                            <p
-                                style={{
-                                    fontSize: '14px',
-                                    fontWeight: '600',
-                                    marginBottom: '8px',
-                                    color: '#6b7280',
-                                }}
-                            >
-                                User Aktif
-                            </p>
-                            <h2
-                                style={{
-                                    fontSize: '36px',
-                                    fontWeight: '800',
-                                    margin: 0,
-                                    color: '#111827',
-                                }}
-                            >
-                                {loading ? '...' : countActive}
-                            </h2>
+                            <p style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: '#6b7280' }}>User Aktif</p>
+                            <h2 style={{ fontSize: '36px', fontWeight: '800', margin: 0, color: '#111827' }}>{loading ? '...' : countActive}</h2>
                         </div>
-                        <div
-                            style={{
-                                width: '48px',
-                                height: '48px',
-                                borderRadius: '50%',
-                                backgroundColor: '#fff7ed',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#f97316',
-                            }}
-                        >
+                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#fff7ed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316' }}>
                             <UserCheck size={24} />
                         </div>
                     </div>
 
-                    <div
-                        style={{
-                            flex: 1,
-                            minWidth: '250px',
-                            borderRadius: '12px',
-                            padding: '24px',
-                            boxShadow:
-                                '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            border: '1px solid #e5e7eb',
-                            backgroundColor: '#F9F9F9',
-                        }}
-                    >
+                    <div style={{
+                        flex: 1, minWidth: '250px', borderRadius: '12px', padding: '24px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        border: '1px solid #e5e7eb', backgroundColor: '#F9F9F9',
+                    }}>
                         <div>
-                            <p
-                                style={{
-                                    fontSize: '14px',
-                                    fontWeight: '600',
-                                    marginBottom: '8px',
-                                    color: '#111827',
-                                }}
-                            >
-                                User Tidak Aktif
-                            </p>
-                            <h2
-                                style={{
-                                    fontSize: '36px',
-                                    fontWeight: '800',
-                                    margin: 0,
-                                    color: '#111827',
-                                }}
-                            >
-                                {loading ? '...' : countInactive}
-                            </h2>
+                            <p style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: '#111827' }}>User Tidak Aktif</p>
+                            <h2 style={{ fontSize: '36px', fontWeight: '800', margin: 0, color: '#111827' }}>{loading ? '...' : countInactive}</h2>
                         </div>
-                        <div
-                            style={{
-                                width: '48px',
-                                height: '48px',
-                                borderRadius: '50%',
-                                backgroundColor: '#dbeafe',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#2563eb',
-                            }}
-                        >
+                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
                             <UserX size={24} />
                         </div>
                     </div>
                 </div>
 
-
-                {/* Search, Sort, & Action Button */}
-                <div style={{
-                    marginBottom: '24px',
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '16px',
-                    flexWrap: 'wrap'
-                }}>
-
-                    {/* Search & Sort */}
+                {/* Search & Sort Controls */}
+                <div style={{ marginBottom: '24px', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                     <div style={{ display: 'flex', flex: 1, alignItems: 'center', gap: '12px', minWidth: '300px' }}>
-                        {/* Search Bar */}
                         <div style={{ position: 'relative', width: '100%', maxWidth: '450px' }}>
                             <input
                                 type="text"
@@ -350,100 +257,49 @@ export default function DashboardPage() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 style={{
-                                    width: '100%',
-                                    borderRadius: '6px',
-                                    border: '1px solid #9ca3af',
-                                    paddingTop: '8px',
-                                    paddingBottom: '8px',
-                                    paddingRight: '40px',
-                                    paddingLeft: '16px',
-                                    fontSize: '14px',
-                                    outline: 'none',
-                                    color: '#374151'
+                                    width: '100%', borderRadius: '6px', border: '1px solid #9ca3af',
+                                    paddingTop: '8px', paddingBottom: '8px', paddingRight: '40px', paddingLeft: '16px',
+                                    fontSize: '14px', outline: 'none', color: '#374151'
                                 }}
                             />
-                            {/* Ikon Search Absolute */}
-                            <div style={{
-                                position: 'absolute',
-                                right: '12px',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                color: '#000000',
-                                pointerEvents: 'none'
-                            }}>
+                            <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#000000', pointerEvents: 'none' }}>
                                 <Search size={18} />
                             </div>
                         </div>
 
-                        {/* Tombol Sort */}
-                        <button style={{
-                            display: 'flex', alignItems: 'center', gap: '8px',
-                            borderRadius: '6px', border: '1px solid #9ca3af',
-                            backgroundColor: '#ffffff',
-                            padding: '8px 16px',
-                            fontSize: '14px', fontWeight: '500', color: '#000000',
-                            whiteSpace: 'nowrap', cursor: 'pointer'
-                        }}>
-                            Sort <ArrowUpDown size={16} />
+                        <button
+                            onClick={handleSortToggle}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '8px',
+                                borderRadius: '6px', border: '1px solid #9ca3af',
+                                backgroundColor: '#ffffff', padding: '8px 16px',
+                                fontSize: '14px', fontWeight: '500', color: '#000000',
+                                whiteSpace: 'nowrap', cursor: 'pointer'
+                            }}
+                        >
+                            Sort ({sortOrder === 'newest' ? 'Terbaru' : 'Terlama'}) <ArrowUpDown size={16} />
                         </button>
                     </div>
 
-                    {/* Tombol Buat User */}
-                    <Link
-                        href="/super_admin/create"
-                        style={{
-                            display: 'flex', alignItems: 'center', gap: '8px',
-                            borderRadius: '6px',
-                            backgroundColor: '#172433',
-                            padding: '8px 16px',
-                            fontSize: '14px', fontWeight: '500', color: '#ffffff',
-                            whiteSpace: 'nowrap', textDecoration: 'none',
-                            transition: 'background-color 0.2s'
-                        }}
-                    >
+                    <Link href="/super_admin/create" style={{
+                        display: 'flex', alignItems: 'center', gap: '8px', borderRadius: '6px',
+                        backgroundColor: '#172433', padding: '8px 16px', fontSize: '14px', fontWeight: '500',
+                        color: '#ffffff', whiteSpace: 'nowrap', textDecoration: 'none', transition: 'background-color 0.2s'
+                    }}>
                         <Plus size={18} />
                         <span> Tambah User</span>
                     </Link>
-
                 </div>
 
                 {/* Tabel Data */}
-                <div style={{
-                    overflowX: 'auto',
-                    borderRadius: '8px 8px 0 0',
-                    border: '1px solid #e5e7eb',
-                    backgroundColor: '#ffffff',
-                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
-                }}>
+                <div style={{ overflowX: 'auto', borderRadius: '8px 8px 0 0', border: '1px solid #e5e7eb', backgroundColor: '#ffffff', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
                     <table style={{ width: '100%', minWidth: '1000px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                         <thead style={{ backgroundColor: '#f3f4f6', color: '#374151' }}>
                             <tr>
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center', width: '64px' }}>No</th>
-
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center', whiteSpace: 'nowrap' }}>Gmail</th>
-
-                                <th style={{
-                                    padding: '16px',
-                                    borderBottom: '1px solid #e5e7eb',
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    minWidth: '220px',
-                                    whiteSpace: 'nowrap'
-                                }}>
-                                    Nama Lengkap
-                                </th>
-
-                                <th style={{
-                                    padding: '16px',
-                                    borderBottom: '1px solid #e5e7eb',
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    minWidth: '160px',
-                                    whiteSpace: 'nowrap'
-                                }}>
-                                    NIP
-                                </th>
-
+                                <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center', minWidth: '220px', whiteSpace: 'nowrap' }}>Nama Lengkap</th>
+                                <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center', minWidth: '160px', whiteSpace: 'nowrap' }}>NIP</th>
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center', width: '14%' }}>Role</th>
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center', width: '14%' }}>Status Akun</th>
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center' }}>Aksi</th>
@@ -454,21 +310,20 @@ export default function DashboardPage() {
                                 <tr>
                                     <td colSpan={7} style={{ padding: '40px', textAlign: 'center' }}>
                                         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
-                                            <Loader2 className="animate-spin" size={24} />
-                                            <span>Memuat data...</span>
+                                            <Loader2 className="animate-spin" size={24} /><span>Memuat data...</span>
                                         </div>
                                     </td>
                                 </tr>
-                            ) : filteredData.length === 0 ? (
+                            ) : currentData.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#172433' }}>
-                                        Belum ada data pengguna.
-                                    </td>
+                                    <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#172433' }}>Belum ada data pengguna.</td>
                                 </tr>
                             ) : (
-                                filteredData.map((item, index) => (
+                                currentData.map((item, index) => (
                                     <tr key={item.id} style={{ borderBottom: '1px solid #e5e7eb', transition: 'background-color 0.2s' }}>
-                                        <td style={{ padding: '16px', color: '#172433', textAlign: 'center', fontWeight: '500' }}>{index + 1}</td>
+                                        <td style={{ padding: '16px', color: '#172433', textAlign: 'center', fontWeight: '500' }}>
+                                            {startIndex + index + 1}
+                                        </td>
                                         <td style={{ padding: '16px', color: '#172433', textAlign: 'center', fontWeight: '500' }}>{item.email || '-'}</td>
                                         <td style={{ padding: '16px', color: '#172433', textAlign: 'center', fontWeight: '600' }}>{item.nama_lengkap || '-'}</td>
                                         <td style={{ padding: '16px', color: '#172433', textAlign: 'center' }}>{item.nip || '-'}</td>
@@ -478,45 +333,19 @@ export default function DashboardPage() {
                                         </td>
                                         <td style={{ padding: '16px' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', justifyContent: 'center' }}>
-                                                <Link
-                                                    href={`/super_admin/detail?id=${item.id}`}
-                                                    style={{
-                                                        display: 'flex', width: '160px', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                                                        borderRadius: '9999px', backgroundColor: '#172433', padding: '6px 12px',
-                                                        fontSize: '12px', fontWeight: 'bold', color: '#ffffff', textDecoration: 'none'
-                                                    }}
-                                                >
+                                                <Link href={`/super_admin/detail?id=${item.id}`} style={{
+                                                    display: 'flex', width: '160px', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                                    borderRadius: '9999px', backgroundColor: '#172433', padding: '6px 12px',
+                                                    fontSize: '12px', fontWeight: 'bold', color: '#ffffff', textDecoration: 'none'
+                                                }}>
                                                     <FileText size={14} /> Lihat Detail
                                                 </Link>
-
-                                                {/* Tombol Dinamis: Aktifkan / Nonaktifkan */}
-                                                <button
-                                                    onClick={() => openConfirmModal(item.id, item.is_active)}
-                                                    style={{
-                                                        display: 'flex',
-                                                        width: '160px',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        gap: '8px',
-                                                        borderRadius: '9999px',
-                                                        backgroundColor: '#ffffff',
-                                                        border: `1px solid ${item.is_active ? '#f87171' : '#10b981'}`,
-                                                        padding: '6px 12px',
-                                                        fontSize: '12px',
-                                                        fontWeight: 'bold',
-                                                        color: item.is_active ? '#ef4444' : '#10b981',
-                                                        cursor: 'pointer'
-                                                    }}
-                                                >
-                                                    {item.is_active ? (
-                                                        <>
-                                                            <UserMinus size={14} /> Nonaktifkan
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <CheckCircle size={14} /> Aktifkan Akun
-                                                        </>
-                                                    )}
+                                                <button onClick={() => openConfirmModal(item.id, item.is_active)} style={{
+                                                    display: 'flex', width: '160px', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                                    borderRadius: '9999px', backgroundColor: '#ffffff', border: `1px solid ${item.is_active ? '#f87171' : '#10b981'}`,
+                                                    padding: '6px 12px', fontSize: '12px', fontWeight: 'bold', color: item.is_active ? '#ef4444' : '#10b981', cursor: 'pointer'
+                                                }}>
+                                                    {item.is_active ? <><UserMinus size={14} /> Nonaktifkan</> : <><CheckCircle size={14} /> Aktifkan Akun</>}
                                                 </button>
                                             </div>
                                         </td>
@@ -527,32 +356,47 @@ export default function DashboardPage() {
                     </table>
                 </div>
 
-                {/* Pagination (Tampilan Statis) */}
-                <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <button style={{
-                        display: 'flex', alignItems: 'center', gap: '4px',
-                        borderRadius: '9999px',
-                        border: '1px solid #172433',
-                        backgroundColor: '#ffffff',
-                        padding: '6px 16px',
-                        fontSize: '14px', fontWeight: '500',
-                        color: '#172433',
-                        cursor: 'pointer'
-                    }}>
-                        <ChevronLeft size={16} /> Sebelumnya
-                    </button>
-                    <button style={{
-                        display: 'flex', alignItems: 'center', gap: '4px',
-                        borderRadius: '9999px',
-                        border: '1px solid #172433',
-                        backgroundColor: '#ffffff',
-                        padding: '6px 16px',
-                        fontSize: '14px', fontWeight: '500',
-                        color: '#172433',
-                        cursor: 'pointer'
-                    }}>
-                        Selanjutnya <ChevronRight size={16} />
-                    </button>
+                {/* Pagination Controls */}
+                <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+
+                    {/* BUTTONS (Kiri) */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <button
+                            onClick={handlePrevPage}
+                            disabled={currentPage === 1}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '4px', borderRadius: '9999px',
+                                border: '1px solid #172433',
+                                backgroundColor: '#ffffff', padding: '6px 16px', fontSize: '14px', fontWeight: '500',
+                                color: currentPage === 1 ? '#9ca3af' : '#172433',
+                                borderColor: currentPage === 1 ? '#e5e7eb' : '#172433',
+                                cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                            }}
+                        >
+                            <ChevronLeft size={16} /> Sebelumnya
+                        </button>
+
+                        <button
+                            onClick={handleNextPage}
+                            disabled={currentPage >= totalPages}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '4px', borderRadius: '9999px',
+                                border: '1px solid #172433',
+                                backgroundColor: '#ffffff', padding: '6px 16px', fontSize: '14px', fontWeight: '500',
+                                color: currentPage >= totalPages ? '#9ca3af' : '#172433',
+                                borderColor: currentPage >= totalPages ? '#e5e7eb' : '#172433',
+                                cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer'
+                            }}
+                        >
+                            Selanjutnya <ChevronRight size={16} />
+                        </button>
+                    </div>
+
+                    {/* TEKS (Kanan) */}
+                    <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: '500' }}>
+                        Menampilkan {filteredData.length === 0 ? 0 : startIndex + 1} - {Math.min(startIndex + itemsPerPage, filteredData.length)} dari {filteredData.length} data
+                    </div>
+
                 </div>
 
             </main>
@@ -563,17 +407,8 @@ export default function DashboardPage() {
                 onConfirm={handleConfirmAction}
                 isLoading={actionLoading}
                 title="Konfirmasi Perubahan Status"
-
                 message={
-                    <p>
-                        Apakah Anda yakin ingin <strong>{modalConfig.currentStatus ? "menonaktifkan" : "mengaktifkan"}</strong> user ini?
-                        <br />
-                        <span style={{ fontSize: '13px' }}>
-                            {modalConfig.currentStatus
-                                ? "User tidak akan bisa login ke sistem."
-                                : "User akan mendapatkan akses kembali."}
-                        </span>
-                    </p>
+                    <p>Apakah Anda yakin ingin <strong>{modalConfig.currentStatus ? "menonaktifkan" : "mengaktifkan"}</strong> user ini?<br /><span style={{ fontSize: '13px' }}>{modalConfig.currentStatus ? "User tidak akan bisa login ke sistem." : "User akan mendapatkan akses kembali."}</span></p>
                 }
                 confirmLabel={modalConfig.currentStatus ? "Ya, Nonaktifkan" : "Ya, Aktifkan"}
                 variant={modalConfig.currentStatus ? 'danger' : 'success'}
