@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, Suspense } from 'react'; // 1. Tambah import Suspense
 import {
     ArrowLeft,
     Loader2,
@@ -17,7 +17,18 @@ import { useSearchParams } from 'next/navigation';
 import SuratSKRD from '@/lib/components/SuratSKRD';
 import ModalConfirm from '@/lib/components/ModalConfirm';
 
-const DetailSKRDPage = () => {
+// 2. Kita pindahkan Loading UI ke variabel agar bisa dipakai ulang di Suspense
+const LoadingState = () => (
+    <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff', color: '#374151' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+            <Loader2 size={48} className="animate-spin text-[#172433]" />
+            <p style={{ fontWeight: '500' }}>Memuat data...</p>
+        </div>
+    </div>
+);
+
+// 3. Ubah nama komponen utama lama menjadi "DetailContent"
+const DetailContent = () => {
     const searchParams = useSearchParams();
     const nomorSuratParam = searchParams.get('nomor_surat');
 
@@ -159,14 +170,7 @@ const DetailSKRDPage = () => {
     };
 
     if (loading) {
-        return (
-            <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff', color: '#374151' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                    <Loader2 size={48} className="animate-spin text-[#172433]" />
-                    <p style={{ fontWeight: '500' }}>Memuat detail surat...</p>
-                </div>
-            </div>
-        );
+        return <LoadingState />;
     }
 
     if (!data) {
@@ -349,7 +353,7 @@ const DetailSKRDPage = () => {
                             )}
                         </div>
 
-    
+
 
                         <div>
                             <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '8px' }}>Kepala Dinas Penanggung Jawab</p>
@@ -460,6 +464,15 @@ const DetailSKRDPage = () => {
             )}
 
         </div>
+    );
+};
+
+// 4. Komponen Utama Baru (Default Export) yang membungkus dengan Suspense
+const DetailSKRDPage = () => {
+    return (
+        <Suspense fallback={<LoadingState />}>
+            <DetailContent />
+        </Suspense>
     );
 };
 
