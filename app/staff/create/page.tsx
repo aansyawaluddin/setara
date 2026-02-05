@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, User, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { konversiTerbilang } from '../../../lib/utils/terbilang';
-import { useAutoNomor } from '../../../lib/hooks/useAutoNomor';
+import { konversiTerbilang } from '@/lib/utils/terbilang';
+import { useAutoNomor } from '@/lib/hooks/useAutoNomor';
 import ModalConfirm from '@/lib/components/ModalConfirm';
 
 const SKRDPage = () => {
@@ -16,15 +16,24 @@ const SKRDPage = () => {
 
     const [namaPemilik, setNamaPemilik] = useState('');
     const [alamatBangunan, setAlamatBangunan] = useState('');
-    const [kodeRekening, setKodeRekening] = useState('');
+
+    const [kodeRekening, setKodeRekening] = useState('13100100065');
+
     const [jenisRetribusi, setJenisRetribusi] = useState('');
     const [kepalaDinas, setKepalaDinas] = useState('');
 
     const [jumlah, setJumlah] = useState('');
     const [terbilang, setTerbilang] = useState('-');
 
-    // STATE UNTUK MODAL
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+    const isFormValid =
+        namaPemilik.trim() !== '' &&
+        alamatBangunan.trim() !== '' &&
+        kodeRekening.trim() !== '' &&
+        jenisRetribusi.trim() !== '' &&
+        jumlah.trim() !== '' &&
+        kepalaDinas !== '';
 
     useEffect(() => {
         const fetchKadis = async () => {
@@ -65,11 +74,7 @@ const SKRDPage = () => {
 
     const handleValidate = (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!namaPemilik || !alamatBangunan || !jumlah || !kepalaDinas || !kodeRekening || !jenisRetribusi) {
-            return;
-        }
-
+        if (!isFormValid) return;
         setShowConfirmModal(true);
     };
 
@@ -133,7 +138,7 @@ const SKRDPage = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 backgroundColor: '#172433',
-                padding: '0 40px',
+                padding: '0 120px',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -235,29 +240,24 @@ const SKRDPage = () => {
 
                     {/* Kode Rekening */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <label style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>
-                            Kode Rekening <span style={{ color: '#ef4444' }}>*</span>
-                        </label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <label style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>
+                                Kode Rekening <span style={{ color: '#ef4444' }}>*</span>
+                            </label>
+                        </div>
                         <input
                             type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            placeholder="Masukkan Kode Rekening"
                             value={kodeRekening}
-                            onChange={(e) => {
-                                const onlyNumber = e.target.value.replace(/\D/g, '');
-                                setKodeRekening(onlyNumber);
-                            }}
+                            readOnly
+                            disabled
                             style={{
-                                width: '100%',
-                                padding: '12px 16px',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '8px',
+                                width: '100%', padding: '12px 16px',
+                                border: '1px solid #d1d5db', borderRadius: '8px',
                                 outline: 'none',
-                                backgroundColor: '#ffffff'
+                                backgroundColor: '#e5e7eb',
+                                color: '#4b5563', cursor: 'not-allowed'
                             }}
                         />
-
                     </div>
 
                     {/* Jenis Retribusi */}
@@ -337,24 +337,26 @@ const SKRDPage = () => {
                         </div>
                     </div>
 
-                    {/* Tombol Buat */}
+                    {/* Tombol Buat  */}
                     <div style={{ paddingTop: '16px' }}>
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={!isFormValid || loading} 
                             style={{
                                 width: '100%',
-                                backgroundColor: '#172433',
+                                backgroundColor: (!isFormValid || loading) ? '#9ca3af' : '#172433',
                                 color: '#ffffff',
                                 padding: '12px',
                                 borderRadius: '8px',
                                 fontSize: '16px', fontWeight: 'bold',
-                                border: 'none', cursor: 'pointer',
+                                border: 'none',
+    
+                                cursor: (!isFormValid || loading) ? 'not-allowed' : 'pointer',
                                 boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                                 display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px'
                             }}
                         >
-                            Buat Surat
+                            {loading ? <Loader2 className="animate-spin" size={20} /> : 'Buat Surat'}
                         </button>
                     </div>
 

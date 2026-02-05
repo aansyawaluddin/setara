@@ -1,4 +1,5 @@
 import React from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface SuratSKRDProps {
     data: {
@@ -11,15 +12,14 @@ interface SuratSKRDProps {
         terbilang: string;
         kepala_dinas: string;
         created_at: string;
+        barcode_url?: string;
         kadis_profile?: {
             nama_lengkap: string;
             nip: string;
-            ttd_barcode: string;
         };
         approved_by_profile?: {
             nama_lengkap: string;
             nip: string;
-            ttd_barcode: string;
         };
     };
 }
@@ -32,6 +32,8 @@ const SuratSKRD = ({ data }: SuratSKRDProps) => {
     const tglBuat = new Date(data.created_at);
     const tglJatuhTempo = new Date(tglBuat);
     tglJatuhTempo.setDate(tglBuat.getDate() + 30);
+
+    const qrValue = data.barcode_url || "";
 
     return (
         <div className="print-wrapper">
@@ -70,15 +72,10 @@ const SuratSKRD = ({ data }: SuratSKRDProps) => {
                         width: 100%;
                         border-collapse: collapse;
                     }
-                    .bt-1 { border-top: 1px solid black; }
-                    .bb-1 { border-bottom: 1px solid black; }
-                    .bl-1 { border-left: 1px solid black; }
-                    .br-1 { border-right: 1px solid black; }
-                    
                     td, th {
                         padding: 5px 8px;
                         vertical-align: top;
-                        border: 1px solid black; /* Memastikan semua garis muncul */
+                        border: 1px solid black;
                     }
                     .no-border td { border: none; padding: 2px 0; }
                     .text-center { text-align: center; }
@@ -92,12 +89,7 @@ const SuratSKRD = ({ data }: SuratSKRDProps) => {
                         display: flex;
                         justify-content: center;
                         align-items: center;
-                    }
-                    .barcode-img {
-                        width: 150px;
-                        max-width: 100px;
-                        object-fit: contain;
-                        /* mix-blend-mode: multiply; Hapus jika barcode transparan */
+                        padding: 10px;
                     }
                 }
             `}</style>
@@ -112,7 +104,8 @@ const SuratSKRD = ({ data }: SuratSKRDProps) => {
                                     <img src="/gowa.png" alt="Logo" style={{ width: '45px' }} />
                                     <div style={{ textAlign: 'center' }}>
                                         <div className="font-bold" style={{ fontSize: '12pt' }}>PEMERINTAH KABUPATEN GOWA</div>
-                                        <div className="font-bold" style={{ fontSize: '12pt' }}>DINAS PERUMAHAN, PEMUKIMAN, DAN PERTANAHAN</div>
+                                        <div className="font-bold" style={{ fontSize: '12pt' }}>DINAS PERUMAHAN, KAWASAN PERMUKIMAN, DAN PERTANAHAN
+                                        </div>
                                         <div className="" style={{ fontSize: '10pt' }}>Jl. Beringin No. 8 Sungguminasa Gowa</div>
                                     </div>
                                 </div>
@@ -171,19 +164,11 @@ const SuratSKRD = ({ data }: SuratSKRDProps) => {
                                 <div style={{ marginTop: '5px' }}>
                                     {data.jenis_retribusi ? (
                                         data.jenis_retribusi.split('\n').map((line, index) => (
-                                            <div
-                                                key={index}
-                                                style={{
-                                                    fontWeight: index === 0 ? 'bold' : 'normal',
-                                                    marginBottom: '2px'
-                                                }}
-                                            >
+                                            <div key={index} style={{ fontWeight: index === 0 ? 'bold' : 'normal', marginBottom: '2px' }}>
                                                 {line}
                                             </div>
                                         ))
-                                    ) : (
-                                        '-'
-                                    )}
+                                    ) : '-'}
                                 </div>
                             </td>
                             <td className="text-right" style={{ verticalAlign: 'bottom' }}>
@@ -218,33 +203,40 @@ const SuratSKRD = ({ data }: SuratSKRDProps) => {
                     </tbody>
                 </table>
 
-                {/* TANDA TANGAN */}
+                {/* TANDA TANGAN / QR CODE */}
                 <table style={{ fontSize: '12pt' }}>
                     <tbody>
                         <tr>
-                            <td className="text-center" style={{ width: '33%', borderRight: 'none' }}>
-                                <div style={{ marginBottom: '60px', marginTop: '10px' }}>Yang Menerima,</div>
+                            {/* KOLOM KIRI: PENERIMA */}
+                            <td className="text-center" style={{ width: '33%', borderRight: 'none', verticalAlign: 'top' }}>
+                                {/* Spacer atas agar sejajar dengan "Kepala Dinas" di kanan */}
+                                <div style={{ marginTop: '35px', marginBottom: '5px' }}>Yang Menerima,</div>
+
+                                {/* Spacer Tanda Tangan (Disamakan tingginya dengan area TTE di kanan) */}
+                                <div style={{ height: '40px' }}></div>
+
                                 <div className="font-bold">{data.nama_pemilik}</div>
                             </td>
+
+                            {/* KOLOM TENGAH: QR CODE VERIFIKASI */}
                             <td className="text-center" style={{ width: '34%', borderLeft: 'none', borderRight: 'none', verticalAlign: 'middle' }}>
                                 <div className="barcode-container">
-                                    {profile?.ttd_barcode ? (
-                                        <img
-                                            src={profile.ttd_barcode}
-                                            alt="Barcode TTD"
-                                            className="barcode-img"
-                                            style={{ width: '150px' }}
-                                            crossOrigin="anonymous"
-                                        />
+                                    {qrValue ? (
+                                        <QRCodeSVG value={qrValue} size={100} />
                                     ) : (
-                                        <div style={{ width: '70px', height: '70px', border: '1px dashed #ccc' }}></div>
+                                        <div style={{ fontSize: '10pt', color: '#ccc' }}>Belum Divalidasi</div>
                                     )}
                                 </div>
                             </td>
-                            <td className="text-center" style={{ width: '33%', borderLeft: 'none' }}>
+
+                            {/* KOLOM KANAN: KEPALA DINAS */}
+                            <td className="text-center" style={{ width: '33%', borderLeft: 'none', verticalAlign: 'top' }}>
                                 <div style={{ marginTop: '10px' }}>Gowa, {tglBuat.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
                                 <div className="font-bold" style={{ marginBottom: '5px' }}>Kepala Dinas,</div>
-                                <div className="font-bold" style={{ marginBottom: '5px' }}>TTE</div>
+
+                                {/* TTE (Jarak diperpendek menjadi 20px) */}
+                                <div className="font-bold" style={{ marginBottom: '20px' }}>TTE</div>
+
                                 <div className="font-bold" style={{ textDecoration: 'underline' }}>
                                     {profile?.nama_lengkap || '................................................'}
                                 </div>
@@ -255,8 +247,8 @@ const SuratSKRD = ({ data }: SuratSKRDProps) => {
                 </table>
 
                 <div style={{ padding: '8px', fontSize: '8pt', borderTop: '1px solid black' }}>
-                    <strong>Pemberitahuan:</strong> Pembayaran dilakukan paling lambat 30 hari sejak tanggal pendaftaran.
-                    Apabila hingga <strong>{tglJatuhTempo.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</strong> belum lunas, dikenakan denda denda 2% per bulan.
+                    <strong>Perhatian:</strong> Pembayaran dilakukan paling lambat 30 hari sejak tanggal Terbit SKRD Ini.
+
                 </div>
             </div>
         </div>

@@ -51,14 +51,13 @@ export default function DashboardPage() {
 
             if (error) throw error;
             setDataUsers(data || []);
-        } catch (error) {
-            console.error("Gagal mengambil data:", error);
-            alert("Gagal memuat data.");
+        } catch (error: any) {
+            console.error("Detail Error:", JSON.stringify(error, null, 2));
+            alert(`Gagal memuat data: ${error.message || 'Cek console untuk detail'}`);
         } finally {
             setLoading(false);
         }
     };
-
     const fetchUserName = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -108,7 +107,6 @@ export default function DashboardPage() {
                 prev.map(item => item.id === id ? { ...item, is_active: !currentStatus } : item)
             );
 
-            // Tutup Modal
             setModalConfig({ ...modalConfig, isOpen: false });
         } catch (error) {
             console.error("Error:", error);

@@ -1,7 +1,17 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, Loader2, Printer, RefreshCcw, Play, CheckCircle, Clock, X } from 'lucide-react';
+import {
+    ArrowLeft,
+    Loader2,
+    Printer,
+    RefreshCcw,
+    Play,
+    CheckCircle,
+    Clock,
+    X,
+    Eye
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useSearchParams } from 'next/navigation';
 import SuratSKRD from '@/lib/components/SuratSKRD';
@@ -14,15 +24,10 @@ const DetailSKRDPage = () => {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
-    // State untuk Loading Proses
     const [validating, setValidating] = useState(false);
     const [submittingRevisi, setSubmittingRevisi] = useState(false);
-
-    // State untuk Modal Kustom (Revisi)
     const [showModalRevisi, setShowModalRevisi] = useState(false);
     const [alasanRevisi, setAlasanRevisi] = useState("");
-
-    // State untuk Modal Confirm (Validasi)
     const [showValidationModal, setShowValidationModal] = useState(false);
 
     const fetchDetail = useCallback(async () => {
@@ -68,30 +73,47 @@ const DetailSKRDPage = () => {
         }).format(angka);
     };
 
+    const formatDateTime = (dateString: string) => {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleString('id-ID', {
+            day: 'numeric', month: 'long', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: false
+        }) + ' WITA';
+    };
+
     const handlePrint = () => {
         window.print();
     };
 
     const executeValidasi = async () => {
-        setValidating(true); 
+        setValidating(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("Sesi login tidak ditemukan.");
+
+            const tanggalTerbit = new Date();
+            const tanggalJatuhTempo = new Date(tanggalTerbit);
+            tanggalJatuhTempo.setDate(tanggalJatuhTempo.getDate() + 30);
+
+            const origin = window.location.origin;
+            const linkVerifikasi = `${origin}/verify?nomor_surat=${encodeURIComponent(data.nomor_surat)}`;
 
             const { error } = await supabase
                 .from('skrd')
                 .update({
                     status: true,
                     approved_by: user.id,
-                    tanggal_terbit: new Date().toISOString(),
-                    catatan_revisi: null
+                    tanggal_terbit: tanggalTerbit.toISOString(),
+                    jatuh_tempo: tanggalJatuhTempo.toISOString(),
+                    catatan_revisi: null,
+                    barcode_url: linkVerifikasi
                 })
                 .eq('id', data.id);
 
             if (error) throw error;
 
-            setShowValidationModal(false); 
-            await fetchDetail(); 
+            setShowValidationModal(false);
+            await fetchDetail();
 
         } catch (error: any) {
             console.error("Gagal Validasi:", error);
@@ -101,7 +123,6 @@ const DetailSKRDPage = () => {
             setValidating(false);
         }
     };
-
 
     const handleAjukanRevisi = async () => {
         if (!alasanRevisi.trim()) {
@@ -162,7 +183,7 @@ const DetailSKRDPage = () => {
             <SuratSKRD data={data} />
 
             <div className="screen-only">
-                {/* Navbar */}
+
                 <nav style={{
                     display: 'flex', height: '80px', alignItems: 'center', justifyContent: 'space-between',
                     background: 'linear-gradient(90deg, #172433 48%, #3D4650 62%, #3D4650 72%, #172433 89%)', padding: '0 40px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
@@ -205,119 +226,157 @@ const DetailSKRDPage = () => {
 
                     <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: '32px' }}>
                         <div style={{
-                            display: 'inline-block',
-                            padding: '12px 0',
-                            color: '#007bff',
-                            fontWeight: '700',
-                            borderBottom: '2px solid #007bff',
-                            marginBottom: '-1px',
-                            cursor: 'pointer'
+                            display: 'inline-block', padding: '12px 0', color: '#007bff', fontWeight: '700',
+                            borderBottom: '2px solid #007bff', marginBottom: '-1px', cursor: 'pointer'
                         }}>
                             Data Pemilik SKRD
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '64px', rowGap: '32px', marginBottom: '32px' }}>
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Nama Pemilik Bangunan</p>
-                            <p style={{ fontSize: '16px', color: '#374151' }}>{data.nama_pemilik}</p>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Alamat Bangunan</p>
-                            <p style={{ fontSize: '16px', color: '#374151' }}>{data.alamat_bangunan}</p>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Kode Rekening</p>
-                            <p style={{ fontSize: '16px', color: '#374151' }}>{data.kode_rekening}</p>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Jenis Retribusi</p>
-                            <div style={{ fontSize: '16px', color: '#374151', lineHeight: '1.6', whiteSpace: 'pre-line' }}>{data.jenis_retribusi}</div>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Jumlah Ketetapan Pokok Retribusi</p>
-                            <p style={{ fontSize: '16px', color: '#374151' }}>{formatRupiah(data.jumlah)}</p>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Terbilang</p>
-                            <p style={{ fontSize: '16px', color: '#374151', lineHeight: '1.6', textTransform: 'capitalize' }}>{data.terbilang}</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '64px', rowGap: '32px', marginBottom: '40px' }}>
+                        <div><p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Nama Pemilik Bangunan</p><p style={{ fontSize: '16px', color: '#374151' }}>{data.nama_pemilik}</p></div>
+                        <div><p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Alamat Bangunan</p><p style={{ fontSize: '16px', color: '#374151' }}>{data.alamat_bangunan}</p></div>
+                        <div><p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Kode Rekening</p><p style={{ fontSize: '16px', color: '#374151' }}>{data.kode_rekening}</p></div>
+                        <div><p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Jenis Retribusi</p><div style={{ fontSize: '16px', color: '#374151', lineHeight: '1.6', whiteSpace: 'pre-line' }}>{data.jenis_retribusi}</div></div>
+                        <div><p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Jumlah Ketetapan Pokok Retribusi</p><p style={{ fontSize: '16px', color: '#374151' }}>{formatRupiah(data.jumlah)}</p></div>
+                        <div><p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Terbilang</p><p style={{ fontSize: '16px', color: '#374151', lineHeight: '1.6', textTransform: 'capitalize' }}>{data.terbilang}</p></div>
+                    </div>
+
+                    <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: '32px' }}>
+                        <div style={{
+                            display: 'inline-block', padding: '12px 0', color: '#007bff', fontWeight: '700',
+                            borderBottom: '2px solid #007bff', marginBottom: '-1px', cursor: 'pointer'
+                        }}>
+                            Status & Pengesahan
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '64px', alignItems: 'end', marginBottom: '24px' }}>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        columnGap: '64px',
+                        rowGap: '40px',
+                        alignItems: 'start'
+                    }}>
+
                         <div>
-                            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#007bff', margin: 0 }}>Status Permohonan</h3>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Status</p>
+                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Status Permohonan</p>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: data.status ? '#10b981' : '#f59e0b', fontWeight: '600', fontSize: '16px' }}>
                                 {data.status ? <CheckCircle size={20} /> : <Clock size={20} />}
                                 {data.status ? "Diterbitkan" : "Menunggu Validasi"}
                             </div>
                         </div>
-                    </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1.5fr', gap: '20px', alignItems: 'start' }}>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                            <div>
-                                <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '4px' }}>Staff Penginput</p>
-                                <p style={{ fontSize: '15px', color: '#111827', margin: 0 }}>{data.staff_profile?.nama_lengkap || '-'}</p>
-                                <p style={{ fontSize: '13px', color: '#6b7280' }}>NIP. {data.staff_profile?.nip || '-'}</p>
-                            </div>
-                            <div>
-                                <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '4px' }}>Kepala Dinas Penanggung Jawab</p>
-                                <p style={{ fontSize: '15px', color: '#111827', margin: 0 }}>{data.kadis_profile?.nama_lengkap || '-'}</p>
-                                <p style={{ fontSize: '13px', color: '#6b7280' }}>NIP. {data.kadis_profile?.nip || '-'}</p>
-                            </div>
+                        <div>
+                            {data.status && (
+                                <>
+                                    <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Status Pembayaran</p>
+                                    <span style={{
+                                        backgroundColor: data.status_pembayaran === 'LUNAS' ? '#dcfce7' : '#fee2e2',
+                                        color: data.status_pembayaran === 'LUNAS' ? '#166534' : '#991b1b',
+                                        padding: '6px 16px', borderRadius: '9999px', fontSize: '13px', fontWeight: 'bold', textTransform: 'uppercase'
+                                    }}>
+                                        {data.status_pembayaran === 'LUNAS' ? 'LUNAS' : 'BELUM BAYAR'}
+                                    </span>
+                                </>
+                            )}
                         </div>
 
-                        <div>{/* Spacer */}</div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', height: '100%' }}>
-                            <div style={{ display: 'flex', gap: '12px', marginTop: 'auto' }}>
-                                {!data.status ? (
-                                    <>
-                                        <button
-                                            onClick={() => setShowModalRevisi(true)}
+
+                        <div>
+                            <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '8px' }}>Staff Penginput</p>
+                            <p style={{ fontSize: '15px', color: '#111827', margin: 0 }}>{data.staff_profile?.nama_lengkap || '-'}</p>
+                            <p style={{ fontSize: '13px', color: '#6b7280' }}>NIP. {data.staff_profile?.nip || '-'}</p>
+                        </div>
+
+                        <div>
+                            {data.status_pembayaran === 'LUNAS' && (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '12px' }}>
+                                    {data.tanggal_pelunasan && (
+                                        <div style={{ fontSize: '14px', color: '#4b5563' }}>
+                                            Dibayar pada: <br />
+                                            <span style={{ fontWeight: '600', color: '#111827' }}>
+                                                {formatDateTime(data.tanggal_pelunasan)}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {data.bukti_pembayaran_url && (
+                                        <a
+                                            href={data.bukti_pembayaran_url}
+                                            target="_blank"
+                                            rel="noreferrer"
                                             style={{
-                                                display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px',
-                                                backgroundColor: 'white', border: '1px solid #d1d5db', borderRadius: '8px',
-                                                fontWeight: '600', cursor: 'pointer', fontSize: '14px'
+                                                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                backgroundColor: '#3b82f6', color: 'white', padding: '8px 16px',
+                                                borderRadius: '6px', fontSize: '13px', fontWeight: '600',
+                                                textDecoration: 'none', boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
                                             }}
                                         >
-                                            <RefreshCcw size={16} /> Minta Staff Revisi
-                                        </button>
+                                            <Eye size={16} /> Lihat Bukti Bayar
+                                        </a>
+                                    )}
+                                </div>
+                            )}
 
-                                        <button
-                                            onClick={() => setShowValidationModal(true)}
-
-                                            style={{
-                                                display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 24px',
-                                                backgroundColor: '#172433',
-                                                color: 'white', border: 'none', borderRadius: '8px',
-                                                fontWeight: '600', cursor: 'pointer', fontSize: '14px'
-                                            }}
-                                        >
-                                            Validasi SKRD
-                                            <Play size={14} fill="white" />
-                                        </button>
-                                    </>
-                                ) : (
+                            {!data.status && (
+                                <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
                                     <button
-                                        onClick={handlePrint}
+                                        onClick={() => setShowModalRevisi(true)}
                                         style={{
-                                            display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px',
-                                            backgroundColor: '#172433', color: 'white', border: 'none', borderRadius: '8px',
-                                            fontWeight: '600', cursor: 'pointer'
+                                            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px',
+                                            backgroundColor: 'white', border: '1px solid #d1d5db', borderRadius: '8px',
+                                            fontWeight: '600', cursor: 'pointer', fontSize: '14px'
                                         }}
                                     >
-                                        <Printer size={18} /> Cetak SKRD
+                                        <RefreshCcw size={16} /> Minta Revisi
                                     </button>
-                                )}
-                            </div>
+
+                                    <button
+                                        onClick={() => setShowValidationModal(true)}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 24px',
+                                            backgroundColor: '#172433',
+                                            color: 'white', border: 'none', borderRadius: '8px',
+                                            fontWeight: '600', cursor: 'pointer', fontSize: '14px'
+                                        }}
+                                    >
+                                        Validasi SKRD
+                                        <Play size={14} fill="white" />
+                                    </button>
+                                </div>
+                            )}
                         </div>
+
+    
+
+                        <div>
+                            <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '8px' }}>Kepala Dinas Penanggung Jawab</p>
+                            <p style={{ fontSize: '15px', color: '#111827', margin: 0 }}>{data.kadis_profile?.nama_lengkap || '-'}</p>
+                            <p style={{ fontSize: '13px', color: '#6b7280' }}>NIP. {data.kadis_profile?.nip || '-'}</p>
+                        </div>
+
+                        <div></div>
+
+                        <div>
+                            {data.status && (
+                                <button
+                                    onClick={handlePrint}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px',
+                                        backgroundColor: '#172433', color: 'white', border: 'none', borderRadius: '6px',
+                                        fontWeight: '600', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap',
+                                        width: 'fit-content'
+                                    }}
+                                >
+                                    <Printer size={16} /> Cetak SKRD
+                                </button>
+                            )}
+                        </div>
+
                     </div>
+
                 </main>
             </div>
 
@@ -339,47 +398,30 @@ const DetailSKRDPage = () => {
                     display: 'flex', justifyContent: 'center', alignItems: 'center'
                 }}>
                     <div style={{
-                        backgroundColor: 'white',
-                        borderRadius: '12px',
-                        width: '100%', maxWidth: '600px',
-                        overflow: 'hidden',
-                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                        margin: '0 20px'
+                        backgroundColor: 'white', borderRadius: '12px',
+                        width: '100%', maxWidth: '600px', overflow: 'hidden',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)', margin: '0 20px'
                     }}>
                         <div style={{
-                            backgroundColor: '#172433',
-                            padding: '20px 24px',
-                            color: 'white',
+                            backgroundColor: '#172433', padding: '20px 24px', color: 'white',
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                         }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>
-                                Apa Alasan Anda Meminta Revisi?
-                            </h2>
-                            <button onClick={() => setShowModalRevisi(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
-                                <X size={20} />
-                            </button>
+                            <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Apa Alasan Anda Meminta Revisi?</h2>
+                            <button onClick={() => setShowModalRevisi(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><X size={20} /></button>
                         </div>
-
                         <div style={{ padding: '24px' }}>
                             <textarea
                                 value={alasanRevisi}
                                 onChange={(e) => setAlasanRevisi(e.target.value)}
                                 placeholder="Masukkan alasan revisi (Wajib diisi)"
                                 style={{
-                                    width: '100%',
-                                    height: '150px',
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #d1d5db',
-                                    resize: 'none',
-                                    fontSize: '14px',
-                                    outline: 'none',
-                                    boxSizing: 'border-box',
-                                    color: '#374151'
+                                    width: '100%', height: '150px', padding: '12px',
+                                    borderRadius: '8px', border: '1px solid #d1d5db',
+                                    resize: 'none', fontSize: '14px', outline: 'none',
+                                    boxSizing: 'border-box', color: '#374151'
                                 }}
                             />
                         </div>
-
                         <div style={{
                             padding: '0 24px 24px 24px',
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center'
@@ -388,43 +430,28 @@ const DetailSKRDPage = () => {
                                 onClick={() => setShowModalRevisi(false)}
                                 disabled={submittingRevisi}
                                 style={{
-                                    padding: '10px 32px',
-                                    backgroundColor: 'white',
-                                    border: '1px solid #d1d5db',
-                                    borderRadius: '8px',
-                                    fontWeight: '600',
-                                    color: '#111827',
-                                    cursor: 'pointer'
+                                    padding: '10px 32px', backgroundColor: 'white',
+                                    border: '1px solid #d1d5db', borderRadius: '8px',
+                                    fontWeight: '600', color: '#111827', cursor: 'pointer'
                                 }}
                             >
                                 Batal
                             </button>
-
                             <button
                                 onClick={handleAjukanRevisi}
                                 disabled={submittingRevisi}
                                 style={{
-                                    padding: '10px 24px',
-                                    backgroundColor: '#172433',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    fontWeight: '600',
-                                    cursor: submittingRevisi ? 'not-allowed' : 'pointer',
+                                    padding: '10px 24px', backgroundColor: '#172433',
+                                    color: 'white', border: 'none', borderRadius: '8px',
+                                    fontWeight: '600', cursor: submittingRevisi ? 'not-allowed' : 'pointer',
                                     display: 'flex', alignItems: 'center', gap: '8px',
                                     minWidth: '120px', justifyContent: 'center'
                                 }}
                             >
                                 {submittingRevisi ? (
-                                    <>
-                                        <Loader2 className="animate-spin" size={14} />
-                                        <span>Memproses...</span>
-                                    </>
+                                    <><Loader2 className="animate-spin" size={14} /><span>Memproses...</span></>
                                 ) : (
-                                    <>
-                                        <span>Ajukan Revisi</span>
-                                        <Play size={14} fill="white" />
-                                    </>
+                                    <><span>Ajukan Revisi</span><Play size={14} fill="white" /></>
                                 )}
                             </button>
                         </div>

@@ -89,7 +89,6 @@ export default function DashboardPage() {
         fetchUserName();
     }, []);
 
-    // Filter data berdasarkan Search DAN Active Tab
     const filteredData = dataSKRD.filter(item => {
         const matchesSearch = item.nomor_surat.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.nama_pemilik.toLowerCase().includes(searchQuery.toLowerCase());
@@ -208,7 +207,6 @@ export default function DashboardPage() {
                                 fontSize: '14px',
                                 fontWeight: '600',
                                 marginBottom: '8px',
-                                // Warna teks Label berubah (Putih jika aktif, Abu jika tidak)
                                 color: activeTab === 'pending' ? '#d1d5db' : '#6b7280'
                             }}>
                                 Menunggu Validasi
@@ -217,7 +215,6 @@ export default function DashboardPage() {
                                 fontSize: '36px',
                                 fontWeight: '800',
                                 margin: 0,
-                                // Warna Angka berubah (Putih jika aktif, Hitam jika tidak)
                                 color: activeTab === 'pending' ? '#ffffff' : '#111827'
                             }}>
                                 {loading ? '...' : countPending}
@@ -249,8 +246,6 @@ export default function DashboardPage() {
                             alignItems: 'center',
                             transition: 'all 0.3s ease',
                             border: '1px solid #e5e7eb',
-
-                            // LOGIKA WARNA
                             backgroundColor: activeTab === 'published' ? '#172433' : '#F9F9F9',
                         }}
                     >
@@ -259,7 +254,6 @@ export default function DashboardPage() {
                                 fontSize: '14px',
                                 fontWeight: '600',
                                 marginBottom: '8px',
-                                // Warna teks Label berubah
                                 color: activeTab === 'published' ? '#d1d5db' : '#6b7280'
                             }}>
                                 Diterbitkan
@@ -268,7 +262,6 @@ export default function DashboardPage() {
                                 fontSize: '36px',
                                 fontWeight: '800',
                                 margin: 0,
-                                // Warna Angka berubah
                                 color: activeTab === 'published' ? '#ffffff' : '#111827'
                             }}>
                                 {loading ? '...' : countPublished}
@@ -360,17 +353,22 @@ export default function DashboardPage() {
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center', whiteSpace: 'nowrap' }}>Nomor Surat</th>
 
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center', minWidth: '220px', whiteSpace: 'nowrap' }}>
-                                    Nama Pemilik Bangunan
+                                    Nama Pemilik
                                 </th>
 
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center', minWidth: '250px', whiteSpace: 'nowrap' }}>
                                     Alamat Bangunan
                                 </th>
 
-                                {/* KOLOM DINAMIS */}
-                                <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center', width: '30%' }}>
+                                <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center', width: '15%' }}>
                                     {activeTab === 'pending' ? 'Tanggal Permohonan' : 'Tanggal Terbit'}
                                 </th>
+
+                                {activeTab === 'published' && (
+                                    <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center', width: '15%' }}>
+                                        Status Pelunasan
+                                    </th>
+                                )}
 
                                 <th style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', textAlign: 'center' }}>Aksi</th>
                             </tr>
@@ -378,7 +376,7 @@ export default function DashboardPage() {
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} style={{ padding: '40px', textAlign: 'center' }}>
+                                    <td colSpan={activeTab === 'published' ? 7 : 6} style={{ padding: '40px', textAlign: 'center' }}>
                                         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
                                             <Loader2 className="animate-spin" size={24} />
                                             <span>Memuat data...</span>
@@ -387,7 +385,7 @@ export default function DashboardPage() {
                                 </tr>
                             ) : filteredData.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#172433' }}>
+                                    <td colSpan={activeTab === 'published' ? 7 : 6} style={{ padding: '40px', textAlign: 'center', color: '#172433' }}>
                                         {activeTab === 'pending'
                                             ? 'Tidak ada surat yang menunggu validasi.'
                                             : 'Tidak ada surat yang diterbitkan.'
@@ -414,6 +412,22 @@ export default function DashboardPage() {
                                                 </span>
                                             </div>
                                         </td>
+
+                                        {activeTab === 'published' && (
+                                            <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                <span style={{
+                                                    backgroundColor: item.status_pembayaran === 'LUNAS' ? '#dcfce7' : '#fee2e2',
+                                                    color: item.status_pembayaran === 'LUNAS' ? '#166534' : '#991b1b',
+                                                    padding: '6px 16px',
+                                                    borderRadius: '9999px',
+                                                    fontSize: '12px',
+                                                    fontWeight: 'bold',
+                                                    textTransform: 'uppercase'
+                                                }}>
+                                                    {item.status_pembayaran === 'LUNAS' ? 'LUNAS' : 'BELUM'}
+                                                </span>
+                                            </td>
+                                        )}
 
                                         <td style={{ padding: '16px' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', justifyContent: 'center' }}>

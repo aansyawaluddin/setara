@@ -1,7 +1,14 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { ArrowLeft, User, FileText, Loader2, Printer, CheckCircle, Clock } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { 
+    ArrowLeft, 
+    Loader2, 
+    Printer, 
+    CheckCircle, 
+    Clock, 
+    Eye 
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useSearchParams } from 'next/navigation';
 import SuratSKRD from '@/lib/components/SuratSKRD';
@@ -13,42 +20,40 @@ const DetailSKRDPage = () => {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
+    const fetchDetail = useCallback(async () => {
+        if (!nomorSuratParam) return;
+
+        setLoading(true);
+        try {
+            const { data: result, error } = await supabase
+                .from('skrd')
+                .select(`
+                    *,
+                    staff_profile:profiles!created_by (
+                        nama_lengkap,
+                        nip
+                    ),
+                    kadis_profile:profiles!kepala_dinas (
+                        nama_lengkap,
+                        nip,
+                        ttd_barcode
+                    )
+                `)
+                .eq('nomor_surat', nomorSuratParam)
+                .single();
+
+            if (error) throw error;
+            setData(result);
+        } catch (error) {
+            console.error("Gagal mengambil detail:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, [nomorSuratParam]);
 
     useEffect(() => {
-        const fetchDetail = async () => {
-            if (!nomorSuratParam) return;
-
-            setLoading(true);
-            try {
-                const { data: result, error } = await supabase
-                    .from('skrd')
-                    .select(`
-                        *,
-                        penanggung_jawab:profiles!kepala_dinas (
-                            nama_lengkap,
-                            nip,
-                            ttd_barcode
-                        ),
-                        pemberi_persetujuan:profiles!approved_by (
-                            nama_lengkap,
-                            nip,
-                            ttd_barcode
-                        )
-                    `)
-                    .eq('nomor_surat', nomorSuratParam)
-                    .single();
-
-                if (error) throw error;
-                setData(result);
-            } catch (error) {
-                console.error("Gagal mengambil detail:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchDetail();
-    }, [nomorSuratParam]);
+    }, [fetchDetail]);
 
     const formatRupiah = (angka: number) => {
         return new Intl.NumberFormat('id-ID', {
@@ -58,7 +63,14 @@ const DetailSKRDPage = () => {
         }).format(angka);
     };
 
-    // Print
+    const formatDateTime = (dateString: string) => {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleString('id-ID', {
+            day: 'numeric', month: 'long', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: false
+        }) + ' WITA'; 
+    };
+
     const handlePrint = () => {
         window.print();
     };
@@ -83,22 +95,15 @@ const DetailSKRDPage = () => {
     }
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', fontFamily: 'sans-serif', color: '#111827' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', fontFamily: 'sans-serif', color: '#111827', position: 'relative' }}>
 
-            <SuratSKRD
-                data={{
-                    ...data,
-                    kadis_profile: data.penanggung_jawab,
-                    approved_by_profile: data.pemberi_persetujuan
-                }}
-            />
+            <SuratSKRD data={data} />
 
             <div className="screen-only">
-
                 {/* Navbar */}
                 <nav style={{
                     display: 'flex', height: '80px', alignItems: 'center', justifyContent: 'space-between',
-                    backgroundColor: '#172433', padding: '0 40px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    background: 'linear-gradient(90deg, #172433 48%, #3D4650 62%, #3D4650 72%, #172433 89%)', padding: '0 40px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div style={{ fontSize: '30px', fontWeight: '800', letterSpacing: '0.025em', color: '#ffffff' }}>
@@ -138,97 +143,124 @@ const DetailSKRDPage = () => {
 
                     <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: '32px' }}>
                         <div style={{
-                            display: 'inline-block',
-                            padding: '12px 0',
-                            color: '#007bff',
-                            fontWeight: '700',
-                            borderBottom: '2px solid #007bff',
-                            marginBottom: '-1px',
-                            cursor: 'pointer'
+                            display: 'inline-block', padding: '12px 0', color: '#007bff', fontWeight: '700',
+                            borderBottom: '2px solid #007bff', marginBottom: '-1px', cursor: 'pointer'
                         }}>
                             Data Pemilik SKRD
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '64px', rowGap: '32px', marginBottom: '48px' }}>
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Nama Pemilik Bangunan</p>
-                            <p style={{ fontSize: '16px', color: '#374151' }}>{data.nama_pemilik}</p>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Alamat Bangunan</p>
-                            <p style={{ fontSize: '16px', color: '#374151' }}>{data.alamat_bangunan}</p>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Kode Rekening</p>
-                            <p style={{ fontSize: '16px', color: '#374151' }}>{data.kode_rekening}</p>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Jenis Retribusi</p>
-                            <div style={{ fontSize: '16px', color: '#374151', lineHeight: '1.6', whiteSpace: 'pre-line' }}>{data.jenis_retribusi}</div>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Jumlah Ketetapan Pokok Retribusi</p>
-                            <p style={{ fontSize: '16px', color: '#374151' }}>{formatRupiah(data.jumlah)}</p>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Terbilang</p>
-                            <p style={{ fontSize: '16px', color: '#374151', lineHeight: '1.6', textTransform: 'capitalize' }}>{data.terbilang}</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '64px', rowGap: '32px', marginBottom: '40px' }}>
+                        <div><p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Nama Pemilik Bangunan</p><p style={{ fontSize: '16px', color: '#374151' }}>{data.nama_pemilik}</p></div>
+                        <div><p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Alamat Bangunan</p><p style={{ fontSize: '16px', color: '#374151' }}>{data.alamat_bangunan}</p></div>
+                        <div><p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Kode Rekening</p><p style={{ fontSize: '16px', color: '#374151' }}>{data.kode_rekening}</p></div>
+                        <div><p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Jenis Retribusi</p><div style={{ fontSize: '16px', color: '#374151', lineHeight: '1.6', whiteSpace: 'pre-line' }}>{data.jenis_retribusi}</div></div>
+                        <div><p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Jumlah Ketetapan Pokok Retribusi</p><p style={{ fontSize: '16px', color: '#374151' }}>{formatRupiah(data.jumlah)}</p></div>
+                        <div><p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Terbilang</p><p style={{ fontSize: '16px', color: '#374151', lineHeight: '1.6', textTransform: 'capitalize' }}>{data.terbilang}</p></div>
+                    </div>
+
+                    <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: '32px' }}>
+                        <div style={{
+                            display: 'inline-block', padding: '12px 0', color: '#007bff', fontWeight: '700',
+                            borderBottom: '2px solid #007bff', marginBottom: '-1px', cursor: 'pointer'
+                        }}>
+                            Status & Pengesahan
                         </div>
                     </div>
 
-                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#007bff', marginBottom: '24px' }}>Status Permohonan</h3>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '30px', alignItems: 'start' }}>
-
-                        {/* Kolom 1: Penanggung Jawab */}
+                    <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: '1fr 1fr', 
+                        columnGap: '64px', 
+                        rowGap: '40px', 
+                        alignItems: 'start' 
+                    }}>
+                        
                         <div>
-                            <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px' }}>
-                                Kepala Dinas Penanggung Jawab
-                            </p>
-                            {/* Mengambil nama dari hasil join penanggung_jawab */}
-                            <p style={{ fontSize: '15px', color: '#374151', margin: 0 }}>
-                                {data.penanggung_jawab?.nama_lengkap || 'Data tidak tersedia'}
-                            </p>
-                            <p style={{ fontSize: '13px', color: '#6b7280' }}>
-                                NIP. {data.penanggung_jawab?.nip || '-'}
-                            </p>
-                        </div>
-
-                        {/* Kolom 2: Status */}
-                        <div>
-                            <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px' }}>Status</p>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: data.status ? '#10b981' : '#f59e0b', fontWeight: '600' }}>
-                                {data.status ? <CheckCircle size={18} /> : <Clock size={18} />}
+                            <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Status Permohonan</p>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: data.status ? '#10b981' : '#f59e0b', fontWeight: '600', fontSize: '16px' }}>
+                                {data.status ? <CheckCircle size={20} /> : <Clock size={20} />}
                                 {data.status ? "Diterbitkan" : "Menunggu Validasi"}
                             </div>
                         </div>
 
-                        {/* Kolom 3: Tanggal */}
                         <div>
-                            <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px' }}>Tanggal Permohonan SKRD</p>
-                            <p style={{ fontSize: '15px', color: '#374151' }}>{new Date(data.tanggal_permohonan).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                            {data.status && (
+                                <>
+                                    <p style={{ fontSize: '14px', fontWeight: '700', color: '#000000', marginBottom: '8px' }}>Status Pembayaran</p>
+                                    <span style={{
+                                        backgroundColor: data.status_pembayaran === 'LUNAS' ? '#dcfce7' : '#fee2e2',
+                                        color: data.status_pembayaran === 'LUNAS' ? '#166534' : '#991b1b',
+                                        padding: '6px 16px', borderRadius: '9999px', fontSize: '13px', fontWeight: 'bold', textTransform: 'uppercase'
+                                    }}>
+                                        {data.status_pembayaran === 'LUNAS' ? 'LUNAS' : 'BELUM BAYAR'}
+                                    </span>
+                                </>
+                            )}
                         </div>
 
-                        {/* Kolom 4: Button Print (Hanya Muncul Jika Status TRUE) */}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            {data.status === true ? (
-                                <div style={{ width: '180px', border: '1px solid #d1d5db', borderRadius: '12px', overflow: 'hidden', textAlign: 'center' }}>
-                                    <button
-                                        onClick={handlePrint}
-                                        style={{ width: '100%', padding: '12px', backgroundColor: '#172433', color: 'white', border: 'none', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                                    >
-                                        <Printer size={16} /> Lihat File
-                                    </button>
-                                </div>
-                            ) : (
-                                <div style={{ padding: '16px', backgroundColor: '#fff7ed', border: '1px solid #ffedd5', borderRadius: '8px', color: '#9a3412', fontSize: '13px' }}>
-                                    Tombol cetak akan muncul setelah dokumen divalidasi oleh Kepala Dinas.
+                        <div>
+                            <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '8px' }}>Staff Penginput</p>
+                            <p style={{ fontSize: '15px', color: '#111827', margin: 0 }}>{data.staff_profile?.nama_lengkap || '-'}</p>
+                            <p style={{ fontSize: '13px', color: '#6b7280' }}>NIP. {data.staff_profile?.nip || '-'}</p>
+                        </div>
+
+                        <div>
+                            {data.status_pembayaran === 'LUNAS' && (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '12px' }}>
+                                    {data.tanggal_pelunasan && (
+                                        <div style={{ fontSize: '14px', color: '#4b5563' }}>
+                                            Dibayar pada: <br/>
+                                            <span style={{ fontWeight: '600', color: '#111827' }}>
+                                                {formatDateTime(data.tanggal_pelunasan)}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {data.bukti_pembayaran_url && (
+                                        <a 
+                                            href={data.bukti_pembayaran_url} 
+                                            target="_blank" 
+                                            rel="noreferrer"
+                                            style={{ 
+                                                display: 'inline-flex', alignItems: 'center', gap: '6px', 
+                                                backgroundColor: '#3b82f6', color: 'white', padding: '8px 16px',
+                                                borderRadius: '6px', fontSize: '13px', fontWeight: '600', 
+                                                textDecoration: 'none', boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+                                            }}
+                                        >
+                                            <Eye size={16} /> Lihat Bukti Bayar
+                                        </a>
+                                    )}
                                 </div>
                             )}
                         </div>
 
+                        <div>
+                            <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '8px' }}>Kepala Dinas Penanggung Jawab</p>
+                            <p style={{ fontSize: '15px', color: '#111827', margin: 0 }}>{data.kadis_profile?.nama_lengkap || '-'}</p>
+                            <p style={{ fontSize: '13px', color: '#6b7280' }}>NIP. {data.kadis_profile?.nip || '-'}</p>
+                        </div>
+
+                        <div></div>
+                        <div>
+                            {data.status && (
+                                <button
+                                    onClick={handlePrint}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px',
+                                        backgroundColor: '#172433', color: 'white', border: 'none', borderRadius: '6px',
+                                        fontWeight: '600', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap',
+                                        width: 'fit-content'
+                                    }}
+                                >
+                                    <Printer size={16} /> Cetak SKRD
+                                </button>
+                            )}
+                        </div>
+
                     </div>
+
                 </main>
             </div>
         </div>
