@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { konversiTerbilang } from '@/lib/utils/terbilang';
 import ModalConfirm from '@/lib/components/ModalConfirm';
 
-const RevisiSKRD = () => {
+// 1. KOMPONEN KONTEN UTAMA (Berisi Logic & useSearchParams)
+const RevisiContent = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const nomorSuratParam = searchParams.get('nomor_surat');
@@ -432,4 +433,16 @@ const RevisiSKRD = () => {
     );
 };
 
-export default RevisiSKRD;
+// 2. EXPORT HALAMAN UTAMA DENGAN SUSPENSE BOUNDARY
+// Ini yang memperbaiki error "missing-suspense-with-csr-bailout"
+export default function RevisiSKRD() {
+    return (
+        <Suspense fallback={
+            <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff' }}>
+                <Loader2 size={48} className="animate-spin text-[#172433]" />
+            </div>
+        }>
+            <RevisiContent />
+        </Suspense>
+    );
+}
