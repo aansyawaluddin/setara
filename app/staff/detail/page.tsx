@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, Suspense } from 'react';
 import {
     ArrowLeft,
     Loader2,
@@ -13,7 +13,8 @@ import { supabase } from '@/lib/supabase';
 import { useSearchParams } from 'next/navigation';
 import SuratSKRD from '@/lib/components/SuratSKRD';
 
-const DetailSKRDPage = () => {
+// 1. KOMPONEN KONTEN UTAMA (Berisi Logic & useSearchParams)
+const DetailContent = () => {
     const searchParams = useSearchParams();
     const nomorSuratParam = searchParams.get('nomor_surat');
 
@@ -273,4 +274,18 @@ const DetailSKRDPage = () => {
     );
 };
 
-export default DetailSKRDPage;
+// 2. EXPORT HALAMAN UTAMA DENGAN SUSPENSE BOUNDARY
+export default function DetailSKRDPage() {
+    return (
+        <Suspense fallback={
+            <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff', color: '#374151' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                    <Loader2 size={48} className="animate-spin text-[#172433]" />
+                    <p style={{ fontWeight: '500' }}>Memuat halaman...</p>
+                </div>
+            </div>
+        }>
+            <DetailContent />
+        </Suspense>
+    );
+}
